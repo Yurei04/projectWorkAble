@@ -2,4 +2,5 @@
     <string name="app_name">ProjectWorkAble</string>
     <string name="jobs_screen_title">title</string>
     <string name="jobs_screen_description">des</string>
+    <string name="blog_screen_title">title\n</string>
 </resources>

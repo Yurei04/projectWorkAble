@@ -6,13 +6,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.projectworkable.R
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Column
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.size
-
 
 // A small data holder for nav items
 data class BottomNavItem(val route: String, val iconRes: Int, val label: String)

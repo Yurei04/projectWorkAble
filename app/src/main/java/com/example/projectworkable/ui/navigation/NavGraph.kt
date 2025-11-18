@@ -8,8 +8,11 @@ import androidx.navigation.compose.rememberNavController
 import com.example.projectworkable.ui.screens.HeroScreen
 import com.example.projectworkable.ui.screens.JobsScreen
 import com.example.projectworkable.ui.screens.ProfileScreen
-import com.example.projectworkable.ui.screens.ResoureHubScreen
+import com.example.projectworkable.ui.screens.ResourceHubScreen
 import com.example.projectworkable.ui.screens.BlogScreen
+
+
+
 
 // Simple sealed class for routes — helpful and type-safe
 sealed class Screen(val route: String) {
@@ -38,7 +41,7 @@ fun WorkableNavHost(
             ProfileScreen()
         }
         composable(Screen.Resource.route) {
-            ResoureHubScreen()
+            ResourceHubScreen()
         }
         composable(Screen.Blog.route) {
             BlogScreen()
