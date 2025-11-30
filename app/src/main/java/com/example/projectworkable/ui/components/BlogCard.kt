@@ -1,71 +1,116 @@
 package com.example.projectworkable.ui.components
 
-import androidx.compose.foundation.Image
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image // 💡 Using standard Image composable
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource // 💡 Required for R.drawable
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.res.painterResource
-import com.example.projectworkable.R
+import kotlinx.coroutines.delay
 
-/**
- * @param title The main title of the blog post.
- * @param description A short summary of the blog post.
- * @param image The painter resource for the card's banner image.
- * @param tag A category tag (e.g., "Career", "Skills").
- * @param onClick A lambda function to be invoked when the card is clicked.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BlogCard(
     title: String,
     description: String,
-    image: Painter,
+    imageRes: Int, // 💡 Changed back to Resource ID (Int)
     tag: String,
     onClick: () -> Unit
 ) {
+    // 1. Ken Burns zoom effect
+    var imageScale by remember { mutableFloatStateOf(1f) }
+    val animatedImageScale by animateFloatAsState(
+        targetValue = imageScale,
+        animationSpec = tween(durationMillis = 8000), label = "imageScaleAnimation"
+    )
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(8000)
+            delay(8000)
+        }
+    }
+
+    // 2. Pressed state for tap animation
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val cardScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = tween(durationMillis = 150), label = "cardScaleAnimation"
+    )
+
     Card(
-        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = 12.dp, horizontal = 16.dp)
+            .scale(cardScale)
+            .shadow(6.dp, RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column {
-            // Box to stack the Image and the Tag
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp) // Gives the image a consistent height
+                    .height(180.dp)
+                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
             ) {
-                // Background Image
+                // 💡 FIX: Using standard Image with painterResource(id = imageRes)
                 Image(
-                    painter = image,
+                    painter = painterResource(id = imageRes),
                     contentDescription = title,
-                    contentScale = ContentScale.Crop, // Crop ensures the image fills the space
-                    modifier = Modifier.fillMaxSize()
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(animatedImageScale)
                 )
 
-                // Tag, styled and placed at the top-start corner
+                // Gradient overlay
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    Color.Black.copy(alpha = 0.3f)
+                                )
+                            )
+                        )
+                )
+
+                // Tag
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(12.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.8f))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.85f))
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                        .shadow(2.dp, RoundedCornerShape(50))
                 ) {
                     Text(
                         text = tag,
@@ -76,43 +121,24 @@ fun BlogCard(
                 }
             }
 
-            // Column for Title and Description
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.ExtraBold,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        lineHeight = 24.sp,
+                        letterSpacing = 0.5.sp
+                    ),
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 3 // Prevent long descriptions from taking up too much space
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f),
+                    maxLines = 3
                 )
             }
         }
     }
-}
-
-/**
- * A preview function to visualize the BlogCard in Android Studio.
- * This helps in designing and iterating on the component without running the app.
- */
-@Preview(showBackground = true, name = "Blog Card Preview")
-@Composable
-fun BlogCardPreview() {
-    // You can wrap your preview in your app's theme for accurate representation
-    // ProjectWorkAbleTheme {
-    BlogCard(
-        title = "How to Create an Accessible Resume",
-        description = "Resume techniques and templates tailored for people with disabilities — simple steps to highlight your strengths.",
-        image = painterResource(id = R.drawable.ic_temporary), // Make sure ic_temporary exists
-        tag = "Career",
-        onClick = {}
-    )
-    // }
 }
