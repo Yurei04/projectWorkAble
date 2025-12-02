@@ -1,17 +1,25 @@
 package com.example.projectworkable.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.projectworkable.ui.components.BlogCard
 import com.example.projectworkable.R // 💡 Required for all R.drawable references
 
@@ -30,34 +38,86 @@ fun BlogScreen(
     posts: List<BlogSource> = sampleBlogPosts(),
     onOpenPost: (Int) -> Unit
 ) {
-    // ... (Animation and Column setup remains the same) ...
-
-    // Logo image is a local resource
-    Image(
-        painter = painterResource(id = R.drawable.ic_accessibility),
-        contentDescription = "WorkAble Logo",
-        modifier = Modifier.size(80.dp),
-        contentScale = ContentScale.Fit,
-        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
-    )
-
-    // ... (rest of the header text) ...
+    // Trigger screen animation
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { visible = true }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 24.dp)
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        contentPadding = PaddingValues(bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp) // card spacing
     ) {
+
+        /** ---------------- HEADER AREA ---------------- */
+
+        item {
+            AnimatedVisibility(
+                visible = visible,
+                enter = fadeIn(tween(900))
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_accessibility),
+                        contentDescription = "WorkAble Logo",
+                        modifier = Modifier.size(120.dp),
+                        contentScale = ContentScale.Fit,
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+
+                    AnimatedVisibility(
+                        visible = visible,
+                        enter = slideInVertically(tween(700)) + fadeIn(tween(700))
+                    ) {
+                        Text(
+                            text = "WorkAble Blog",
+                            fontSize = 42.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = "Empowering individuals with disabilities to find meaningful opportunities.",
+                        fontSize = 17.sp,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                    )
+                }
+            }
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        /** ---------------- BLOG CARDS ---------------- */
+
         items(posts) { post ->
             BlogCard(
                 title = post.title,
                 description = post.description,
-                imageRes = post.imageRes, // 💡 Pass the Resource ID
+                imageRes = post.imageRes,
                 tag = post.tag,
                 onClick = { onOpenPost(post.id) }
             )
         }
     }
 }
+
 
 /** ⬇️ Sample data using placeholder R.drawable references */
 fun sampleBlogPosts(): List<BlogSource> = listOf(
