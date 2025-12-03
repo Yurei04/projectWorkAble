@@ -11,27 +11,43 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.projectworkable.ui.navigation.BottomNavBar
 import com.example.projectworkable.ui.navigation.WorkableNavHost
 import com.example.projectworkable.ui.theme.WorkableTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import com.example.projectworkable.ui.screens.LoginScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            WorkableTheme {
+            WorkableTheme(darkTheme = true) { // Force dark theme
                 Surface(color = MaterialTheme.colorScheme.background) {
-                    MainApp()
+                    AppNavigation()
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun AppNavigation() {
+    val navController = rememberNavController()
+
+    NavHost(
+        navController = navController,
+        startDestination = "login"
+    ) {
+        composable("login") {
+            LoginScreen(navController = navController)
+        }
+
+        composable("home") {
+            MainApp()
         }
     }
 }
@@ -52,19 +68,6 @@ fun MainApp() {
                 .fillMaxSize()
         ) {
             WorkableNavHost(navController)
-        }
-    }
-}
-
-
-// small wrapper to give NavHost some bottom padding (so content isn't hidden by the bottom bar)
-@Composable
-fun WorkableNavHostWrapper(navController: androidx.navigation.NavHostController) {
-    androidx.compose.foundation.layout.Column {
-        androidx.compose.foundation.layout.Box(modifier = Modifier
-            .weight(1f)
-            .padding(bottom = 56.dp)) { // ≈ height of nav bar — adjust if needed
-            WorkableNavHost(navController = navController)
         }
     }
 }
