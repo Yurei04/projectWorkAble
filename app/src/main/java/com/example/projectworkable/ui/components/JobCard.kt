@@ -1,141 +1,144 @@
 package com.example.projectworkable.ui.components
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.LocalIndication
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image // 💡 Using standard Image composable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource // 💡 Required for R.drawable
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 
-
-/**
- * @param title The main title of the blog post.
- * @param description A short summary of the blog post.
- * @param detail Description of the job.
- * @param image The painter resource for the card's banner image.
- * @param tag A category tag (e.g., "Career", "Skills").
- * @param onClick A lambda function to be invoked when the card is clicked.
- */
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JobCard(
     title: String,
     description: String,
-    detail: String,
-    image: Painter,
-    onClick: () -> Unit, // We can keep this for future navigation
-    tag: String
+    imageRes: Int, // 💡 Changed back to Resource ID (Int)
+    tag: String,
+    onClick: () -> Unit
 ) {
-    // 1. State to control dialog visibility
-    var showDialog by remember { mutableStateOf(false) }
+    // 1. Ken Burns zoom effect
+    var imageScale by remember { mutableFloatStateOf(1f) }
+    val animatedImageScale by animateFloatAsState(
+        targetValue = imageScale,
+        animationSpec = tween(durationMillis = 8000), label = "imageScaleAnimation"
+    )
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(8000)
+            delay(8000)
+        }
+    }
 
-    // When the card is clicked, we'll set the state to true
-    JobBoxItem(
-        title = title,
-        description = description,
-        detail = detail,
-        image = {
-            Image(
-                painter = image,
-                contentDescription = title,
-                contentScale = ContentScale.Crop, // Makes the image fit well
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(CircleShape) // Makes the image circular
-            )
-        },
-        onClick = { showDialog = true }, // Updated onClick to show the dialog
-        tag = tag
+    // 2. Pressed state for tap animation
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val cardScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = tween(durationMillis = 150), label = "cardScaleAnimation"
     )
 
-    // 3. The AlertDialog that appears when showDialog is true
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false }, // Hide dialog when clicking outside
-            title = {
-                Text(text = title, style = MaterialTheme.typography.headlineSmall)
-            },
-            text = {
-                Column {
-                    Text(text = description, style = MaterialTheme.typography.bodyLarge)
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(text = detail, style = MaterialTheme.typography.bodyLarge)
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = { showDialog = false } // Hide dialog on button press
-                ) {
-                    Text("Close")
-                }
-            },
-            shape = RoundedCornerShape(16.dp)
-        )
-    }
-}
-
-@Composable
-fun JobBoxItem(
-    title: String,
-    description: String,
-    image: @Composable () -> Unit,
-    onClick: () -> Unit,
-    tag: String,
-    detail: String
-) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 16.dp)
+            .padding(vertical = 12.dp, horizontal = 16.dp)
+            .scale(cardScale)
+            .shadow(6.dp, RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp))
             .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = LocalIndication.current,
+                interactionSource = interactionSource,
+                indication = null,
                 onClick = onClick
             ),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            image()
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(
-                modifier = Modifier.weight(1f)
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
             ) {
+                // 💡 FIX: Using standard Image with painterResource(id = imageRes)
+                Image(
+                    painter = painterResource(id = imageRes),
+                    contentDescription = title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(animatedImageScale)
+                )
+
+                // Gradient overlay
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    Color.Black.copy(alpha = 0.3f)
+                                )
+                            )
+                        )
+                )
+
+                // Tag
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(12.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.85f))
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                        .shadow(2.dp, RoundedCornerShape(50))
+                ) {
+                    Text(
+                        text = tag,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        lineHeight = 24.sp,
+                        letterSpacing = 0.5.sp
+                    ),
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f),
+                    maxLines = 3
                 )
             }
         }
     }
 }
-

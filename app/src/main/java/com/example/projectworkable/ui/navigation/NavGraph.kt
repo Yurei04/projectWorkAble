@@ -13,6 +13,7 @@ import com.example.projectworkable.ui.screens.ProfileScreen
 import com.example.projectworkable.ui.screens.ResourceHubScreen
 import com.example.projectworkable.ui.screens.BlogScreen
 import com.example.projectworkable.ui.screens.BlogDetailScreen
+import com.example.projectworkable.ui.screens.JobDetailScreen
 
 sealed class Screen(val route: String) {
     object Home : Screen("home")
@@ -32,7 +33,22 @@ fun WorkableNavHost(
 ) {
     NavHost(navController = navController, startDestination = Screen.Home.route) {
         composable(Screen.Home.route) { HeroScreen() }
-        composable(Screen.Jobs.route) { JobsScreen() }
+        composable("jobs") {
+            JobsScreen(
+                onOpenJob = { jobId ->
+                    navController.navigate("jobDetail/$jobId")
+                }
+            )
+        }
+
+        composable("jobDetail/{jobId}") { backStackEntry ->
+            val jobId = backStackEntry.arguments?.getString("jobId")!!.toInt()
+            JobDetailScreen(
+                jobId = jobId,
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
         composable(Screen.Profile.route) { ProfileScreen() }
         composable(Screen.Resource.route) { ResourceHubScreen() }
 
